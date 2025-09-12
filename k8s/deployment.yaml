@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookmyshow-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bookmyshow
+  template:
+    metadata:
+      labels:
+        app: bookmyshow
+    spec:
+      containers:
+      - name: bookmyshow
+        image: preetishinge/book-my-show:dev   # placeholder; Jenkins will push with tag
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10

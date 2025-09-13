@@ -19,18 +19,19 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonarqube-server') {
-                    sh '''
-                    sonar-scanner \
-                      -Dsonar.projectKey=bookmyshow \
-                      -Dsonar.sources=./bookmyshow-app \
-                      -Dsonar.host.url=$SONAR_HOST_URL \
-                      -Dsonar.login=$SONAR_AUTH_TOKEN
-                    '''
-                }
+    steps {
+        withSonarQubeEnv('sonarqube-server') {
+            withSonarQubeScannerInstallation('sonar-scanner') {
+                sh '''
+                sonar-scanner \
+                  -Dsonar.projectKey=bookmyshow \
+                  -Dsonar.sources=./bookmyshow-app
+                '''
             }
         }
+    }
+}
+
 
         stage('Quality Gate') {
             steps {

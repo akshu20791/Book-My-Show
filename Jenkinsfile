@@ -17,7 +17,7 @@ pipeline {
     }
     stage('SonarQube Analysis') {
       steps {
-        withSonarQubeEnv('SonarQube-secret') {
+        withSonarQubeEnv('SonarQube') {
           // Replace Maven command with sonar-scanner for Node.js
           sh 'sonar-scanner -Dsonar.projectKey=BookMyShow -Dsonar.sources=.'
         }

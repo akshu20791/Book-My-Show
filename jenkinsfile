@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB_USER = "gopi2353"
+        DOCKER_HUB_PASS = credentials('dockerhub-cred')  // Jenkins credential ID
+        IMAGE_NAME = "bookmyshow-app"
+        SONARQUBE = 'SonarQubeServer'   // Jenkins SonarQube server ID
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps { cleanWs() }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'my-devops-changes', url: 'https://github.com/gopi2353/Book-My-Show.git'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE}") {
+                    dir('bookmyshow-app') {
+                        sh 'npm install'
+                        sh 'npx sonar-scanner'
+                    }
+                }
+            }
+        }
+
+        stage('Install Dependencies (NPM)') {
+            steps {
+                dir('bookmyshow-app') { sh 'npm install' }
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    sh """
+                        echo "$DOCKER_HUB_PASS" | docker login -u "$DOCKER_HUB_USER" --password-stdin
+                        docker build -t $DOCKER_HUB_USER/$IMAGE_NAME:latest ./bookmyshow-app
+                        docker push $DOCKER_HUB_USER/$IMAGE_NAME:latest
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to Docker Container') {
+            steps {
+                sh """
+                    docker rm -f bookmyshow || true
+                    docker run -d --name bookmyshow -p 3000:3000 $DOCKER_HUB_USER/$IMAGE_NAME:latest
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            mail to: 'gopichand2353@example.com',
+                 subject: "SUCCESS: Jenkins Pipeline Passed",
+                 body: "The BookMyShow pipeline succeeded."
+        }
+        failure {
+            mail to: 'gopichand2353@example.com',
+                 subject: "FAILURE: Jenkins Pipeline Failed",
+                 body: "The BookMyShow pipeline failed. Check Jenkins logs."
+        }
+    }
+}

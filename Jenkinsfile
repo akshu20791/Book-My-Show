@@ -78,17 +78,28 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            script {
-                try {
-                    mail to: 'mudhenanarasimharao@gmail.com',
-                         subject: "Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
-                         body: "Check Jenkins console for details."
-                } catch (err) {
-                    echo "⚠️ Email notification skipped: ${err}"
-                }
-            }
-        }
+   post {
+    always {
+        emailext (
+            to: 'mudhenanarasimharao@gmail.com',
+            subject: "Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+            body: """
+            Hello Team,
+
+            Jenkins Pipeline finished.
+
+            Project: BookMyShow
+            Build Number: #${env.BUILD_NUMBER}
+            Result: ${currentBuild.currentResult}
+
+            Logs: ${env.BUILD_URL}
+
+            Regards,
+            Jenkins CI/CD
+            """,
+            mimeType: 'text/plain'
+        )
     }
+}
+
 }

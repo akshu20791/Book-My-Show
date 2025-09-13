@@ -6,7 +6,7 @@ pipeline {
   }
   stages {
     stage('Clean Workspace') { steps { cleanWs() } }
-    stage('Checkout Code') { steps { git 'https://github.com/Srilatha7525/Book-My-Show-Devops.git' } }
+    stage('Checkout Code') { steps { git branch: 'feature/docker-integration', url: 'https://github.com/Srilatha7525/Book-My-Show-Devops.git' } }
     stage('SonarQube Analysis') {
       steps { withSonarQubeEnv('SonarQube') { sh 'mvn clean verify sonar:sonar' } }
     }

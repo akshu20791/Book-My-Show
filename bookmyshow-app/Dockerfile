@@ -1,18 +1,23 @@
-# Use official Node.js base image
-FROM node:18
+# Use official Node.js image
+FROM node:16
 
 # Set working directory
 WORKDIR /app
 
-# Copy everything first
-COPY . .
-
-# Then run npm install
+# Copy package.json and install dependencies
+COPY package*.json ./
 RUN npm install
 
-# Expose the port
+# Copy the rest of the app
+COPY . .
+
+# Build the app (React)
+RUN npm run build
+
+# Expose port 3000
 EXPOSE 3000
 
-# Start the app
+# Start app
 CMD ["npm", "start"]
+
 

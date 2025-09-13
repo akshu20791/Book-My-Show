@@ -25,7 +25,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/Rafi345/Book-My-Show.git', branch: 'main'
+                git url: 'https://github.com/Rafi345/Book-My-Show.git', branch: 'feature/update-readme'
             }
         }
 

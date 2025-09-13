@@ -7,10 +7,9 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'            // SonarQube scanner
-        SONAR_TOKEN = credentials('Sonar-token')      // Jenkins Sonar token
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins DockerHub creds
-        REPO_NAME = 'khushijain0910/capstone-project' // DockerHub repo
+        SCANNER_HOME = tool 'sonar-scanner'          // SonarQube scanner
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // DockerHub credentials ID
+        REPO_NAME = 'khushijain0910/capstone-project'
         IMAGE_NAME = 'bms-app'
     }
 
@@ -29,35 +28,33 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {  // SonarQube server name in Jenkins
-                    sh """
-                    ${SCANNER_HOME}/bin/sonar-scanner \
-                    -Dsonar.projectKey=capstone-bms \
-                    -Dsonar.projectName=Capstone-BMS \
-                    -Dsonar.host.url=http://3.138.67.55:9000 \
-                    -Dsonar.login=${SONAR_TOKEN}
-                    """
+                withSonarQubeEnv('SonarQube') {
+                    sh "${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=capstone-bms -Dsonar.projectName=Capstone-BMS -Dsonar.host.url=http://3.138.67.55:9000 -Dsonar.login=${SONAR_TOKEN}"
                 }
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                dir('bookmyshow-app') {
+                    sh 'npm install'
+                }
             }
         }
 
         stage('Docker Build & Push') {
             steps {
                 script {
-                    // Build Docker image
-                    sh "docker build -t ${REPO_NAME}:${env.BUILD_NUMBER} ."
+                    dir('bookmyshow-app') {
+                        // Build Docker image
+                        sh "docker build -t ${REPO_NAME}:${env.BUILD_NUMBER} ."
 
-                    // Login to DockerHub
-                    sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+                        // Login to DockerHub
+                        sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
 
-                    // Push image
-                    sh "docker push ${REPO_NAME}:${env.BUILD_NUMBER}"
+                        // Push image
+                        sh "docker push ${REPO_NAME}:${env.BUILD_NUMBER}"
+                    }
                 }
             }
         }
@@ -74,11 +71,4 @@ pipeline {
             }
         }
     }
-
-    post {
-        always {
-            echo "Pipeline finished. Email notifications are disabled."
-        }
-    }
 }
-

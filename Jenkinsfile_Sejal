@@ -68,14 +68,22 @@ pipeline {
             }
         }
 
-        stage('Deploy to Docker Container') {
-            steps {
-                sh """
-                    docker rm -f bms-container || true
-                    docker run -d -p 3000:3000 --name bms-container $IMAGE_NAME:${BUILD_NUMBER}
-                """
-            }
+       stage('Deploy to Remote Ubuntu via SSH') {
+    steps {
+        sshagent(['ubuntu-ssh']) { // Replace with your SSH credential ID
+            sh '''
+                ssh -o StrictHostKeyChecking=no ubuntu@35.176.13.219 << 'ENDSSH'
+                    cd /home/ubuntu/Book-My-Show/bookmyshow-app || exit 1
+                    git pull origin feature_devops_setup
+                    docker stop bms-container || true
+                    docker rm bms-container || true
+                    docker run -d -p 3000:3000 --name bms-container sejalrk/bookmyshow-app:${BUILD_NUMBER}
+                ENDSSH
+            '''
         }
+    }
+}
+
 
         stage('Email Notification') {
             steps {

@@ -30,13 +30,13 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-server') {
-                    sh ''' 
+                    sh """
                     $SCANNER_HOME/bin/sonar-scanner \
                     -Dsonar.projectKey=BMS \
                     -Dsonar.projectName=BMS \
                     -Dsonar.host.url=http://3.144.13.232:9000/ 
                     -Dsonar.login=$SONAR_TOKEN
-                    '''
+                    """
                 }
             }
         }

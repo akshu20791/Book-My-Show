@@ -12,7 +12,7 @@ pipeline {
         APP_NAME         = 'bookmyshow'                 // App name
         IMAGE_TAG        = "v${BUILD_NUMBER}"           // Unique tag per build
         DOCKERHUB_CREDS  = 'dockerhub-creds'           // Jenkins DockerHub credentials ID
-        SONAR_HOST     = 'http://35.180.109.34:9000'   
+        // SONAR_HOST     = 'http://35.180.109.34:9000'   
         // SONAR_SERVER     = 'SonarQube'              
         SONAR_TOKEN      = credentials('sonar-token')  // Jenkins secret text credential
         AWS_REGION       = 'eu-west-3'                 // EKS region
@@ -35,15 +35,15 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                sh """
-                  docker run --rm \
-                  -v ${env.WORKSPACE}:/usr/src \
+                    sh """
+                 docker run --rm \
+                -v ${env.WORKSPACE}:/usr/src \
                   sonarsource/sonar-scanner-cli \
-                  -Dsonar.projectKey=bookmyshow \
-                  -Dsonar.sources=/usr/src \
-                  -Dsonar.host.url=${SONAR_HOST} \
-                  -Dsonar.login=${SONAR_TOKEN}
-                   """
+      -Dsonar.projectKey=bookmyshow \
+      -Dsonar.sources=/usr/src \
+      -Dsonar.host.url=$SONAR_HOST_URL \
+      -Dsonar.login=$SONAR_AUTH_TOKEN
+    """
 
             }
         }

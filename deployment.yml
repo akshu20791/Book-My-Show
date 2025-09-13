@@ -1,21 +1,20 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bms-app
-  labels:
-    app: bms
+  name: bookmyshow-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: bms
+      app: bookmyshow
   template:
     metadata:
       labels:
-        app: bms
+        app: bookmyshow
     spec:
       containers:
-      - name: bms-container
-        image: kastrov/bms:latest  # Replace with your Docker image
-        ports:
-        - containerPort: 3000  # Replace with the port your app runs on
+        - name: bookmyshow-container
+          image: raf1345/bookmyshow:v1   # initial image, pipeline will update
+          ports:
+            - containerPort: 3000

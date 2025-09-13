@@ -20,7 +20,8 @@ pipeline {
       steps {
         withSonarQubeEnv('SonarQube') {
           // Replace Maven command with sonar-scanner for Node.js
-         sh 'mvn sonar:sonar'
+         sh 'echo $SONAR_AUTH_TOKEN'
+         sh "sonar-scanner -Dsonar.projectKey=BookMyShow -Dsonar.sources=. -Dsonar.login=$SONAR_AUTH_TOKEN"
         }
       }
     }

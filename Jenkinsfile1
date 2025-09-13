@@ -66,18 +66,24 @@ stage('SonarQube Analysis') {
             }
         }
 
-        stage('Deploy to Docker Container') {
+        stage('SonarQube Analysis') {
             steps {
-                script {
-                    // Stop and remove old container if exists
-                    sh "docker rm -f ${IMAGE_NAME} || true"
-
-                    // Run new container
-                    sh "docker run -d -p 3130:3130 --name ${IMAGE_NAME} ${REPO_NAME}:${env.BUILD_NUMBER}"
+                withSonarQubeEnv('SonarQube') {
+                    withEnv([
+                        "JAVA_HOME=${tool 'jdk17'}",
+                        "PATH+JAVA=${tool 'jdk17'}/bin"
+                    ]) {
+                        sh """
+                        ${SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectKey=souvik-capstone \
+                        -Dsonar.projectName=souvik-capstone \
+                        -Dsonar.host.url=http://3.9.24.17:9000 \
+                        -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
                 }
             }
         }
-    }
 
     post {
         always {

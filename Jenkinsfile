@@ -12,7 +12,8 @@ pipeline {
         APP_NAME         = 'bookmyshow'                 // App name
         IMAGE_TAG        = "v${BUILD_NUMBER}"           // Unique tag per build
         DOCKERHUB_CREDS  = 'dockerhub-creds'           // Jenkins DockerHub credentials ID
-        SONAR_SERVER     = 'SonarQube'                 // SonarQube server name in Jenkins
+        // SONAR_HOST     = 'http://35.180.109.34:9000'   
+        SONAR_SERVER     = 'SonarQube'              
         SONAR_TOKEN      = credentials('sonar-token')  // Jenkins secret text credential
         AWS_REGION       = 'eu-west-3'                 // EKS region
         CLUSTER_NAME     = 'batch4-team2-eks-cluster'  // EKS cluster name
@@ -44,6 +45,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Quality Gate') {
             steps {

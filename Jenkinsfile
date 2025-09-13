@@ -1,6 +1,7 @@
 pipeline {
   agent any
   environment {
+    PATH = "/opt/sonar-scanner/bin:${env.PATH}"
     DOCKER_IMAGE = "sri642/bms-bms:${BUILD_NUMBER}"
     DOCKERHUB_CREDENTIALS = credentials('Docker-token')
   }

@@ -7,11 +7,11 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'  // SonarQube scanner
+        SCANNER_HOME = tool 'sonar-scanner'            // SonarQube scanner
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
-        REPO_NAME = 'khushijain0910/capstone-project-bms'
+        REPO_NAME = 'khushijain0910/capstone-project' // DockerHub repo
         IMAGE_NAME = 'bms-app'
-        EMAIL_RECIPIENT = 'your-email@example.com'
+        EMAIL_RECIPIENT = 'khushiijain0910@gmail.com'
     }
 
     stages {
@@ -23,13 +23,13 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/yourusername/your-repo.git'
+                git branch: 'main', url: 'https://github.com/Khushijain0910-png/Capstone.git'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv('SonarQube') {  // Must match Jenkins SonarQube server name
                     sh "${SCANNER_HOME}/bin/sonar-scanner"
                 }
             }

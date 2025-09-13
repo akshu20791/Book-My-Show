@@ -1,0 +1,105 @@
+pipeline {
+    agent any
+    environment {
+        SCANNER_HOME = tool 'sonar'
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Ankita-Goddale/Book-My-Show.git'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar') {
+                    sh """
+                        $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectKey=Capstone_Project \
+                        -Dsonar.projectName=Capstone_Project \
+                        -Dsonar.sources=bookmyshow-app
+                    """
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('bookmyshow-app') {
+                    sh '''
+                        if [ -f package.json ]; then
+                            rm -rf node_modules package-lock.json  
+                            npm install  
+                        else
+                            echo "Error: package.json not found!"
+                            exit 1
+                        fi
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+                        sh '''
+                            docker build -t bms:v1 bookmyshow-app
+                            docker tag bms:v1 ankita1809/bms:v1
+                            docker push ankita1809/bms:v1
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Container') {
+            steps {
+                sh '''
+                    docker rm -f bms-app || true
+                    docker run -d --name bms-app -p 3000:3000 ankita1809/bms:v1
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            emailext (
+                subject: "SUCCESS: SonarQube Quality Gate Passed",
+                body: """
+                Hi Team,
+
+                 Pipeline executed successfully.
+                 SonarQube Quality Gate Passed.
+                 Docker image deployed on EC2.
+
+                Regards,
+                Jenkins
+                """,
+                to: 'goddaleankita18@gmail.com'
+            )
+        }
+        failure {
+            emailext (
+                subject: "FAILED: Jenkins Pipeline",
+                body: """
+                Hi Team,
+
+                 Pipeline failed. Please check Jenkins logs.
+
+                Regards,
+                Jenkins
+                """,
+                to: 'goddaleankita18@gmail.com'
+            )
+        }
+    }
+}

@@ -1,112 +1,93 @@
-(without K8S Stage)
 pipeline {
     agent any
+
     tools {
-        jdk 'jdk17'
-        nodejs 'node23'
+        jdk 'jdk17'                // Ensure JDK 17 is configured in Jenkins
+        nodejs 'node23'            // Node.js version for NPM
     }
+
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'
+        SCANNER_HOME = tool 'sonar-scanner'            // SonarQube scanner
+        SONAR_TOKEN = credentials('Sonar-token')      // Jenkins Sonar token
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins DockerHub creds
+        REPO_NAME = 'souviksarkar123/bookmyshow' // DockerHub repo
+        IMAGE_NAME = 'bms-app'
     }
+
     stages {
         stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
         }
-        stage('Checkout from Git') {
+
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/akshu20791/Book-My-Show.git'
-                sh 'ls -la'  // Verify files after checkout
+                git branch: 'main', url: 'https://github.com/bikssbunny/Book-My-Show-biks.git'
             }
         }
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonar-server') {
-                    sh ''' 
-                    $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=BMS \
-                    -Dsonar.projectKey=BMS 
-                    '''
-                }
+
+stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('SonarQube') {  
+                sh """
+                ${SCANNER_HOME}/bin/sonar-scanner \
+                -Dsonar.projectKey=souvik-capstone \
+                -Dsonar.projectName=souvik-capstone \
+                -Dsonar.host.url=http://3.9.24.17:9000 \
+                -Dsonar.login=${SONAR_TOKEN}
+                """
             }
         }
-        stage('Quality Gate') {
-            steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
-                }
-            }
-        }
+    }
+
         stage('Install Dependencies') {
             steps {
-                sh '''
-                cd bookmyshow-app
-                ls -la  # Verify package.json exists
-                if [ -f package.json ]; then
-                    rm -rf node_modules package-lock.json  # Remove old dependencies
-                    npm install  # Install fresh dependencies
-                else
-                    echo "Error: package.json not found in bookmyshow-app!"
-                    exit 1
-                fi
-                '''
+                dir('bookmyshow-app') {
+                    sh 'npm install'
+                }
             }
         }
-        stage('OWASP FS Scan') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-        stage('Trivy FS Scan') {
-            steps {
-                sh 'trivy fs . > trivyfs.txt'
-            }
-        }
+
         stage('Docker Build & Push') {
             steps {
-                script {
-                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-                        sh ''' 
-                        echo "Building Docker image..."
-                        docker build --no-cache -t kastrov/bms:latest -f bookmyshow-app/Dockerfile bookmyshow-app
+                dir('bookmyshow-app') {
+                    script {
+                        // Build Docker image
+                        sh "docker build -t ${REPO_NAME}:${env.BUILD_NUMBER} ."
 
-                        echo "Pushing Docker image to registry..."
-                        docker push kastrov/bms:latest
-                        '''
+                        // Login to DockerHub
+                        sh "echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin"
+
+                        // Push image
+                        sh "docker push ${REPO_NAME}:${env.BUILD_NUMBER}"
                     }
                 }
             }
         }
-        stage('Deploy to Container') {
+
+        stage('SonarQube Analysis') {
             steps {
-                sh ''' 
-                echo "Stopping and removing old container..."
-                docker stop bms || true
-                docker rm bms || true
-
-                echo "Running new container on port 3000..."
-                docker run -d --restart=always --name bms -p 3000:3000 kastrov/bms:latest
-
-                echo "Checking running containers..."
-                docker ps -a
-
-                echo "Fetching logs..."
-                sleep 5  # Give time for the app to start
-                docker logs bms
-                '''
+                withSonarQubeEnv('SonarQube') {
+                    withEnv([
+                        "JAVA_HOME=${tool 'jdk17'}",
+                        "PATH+JAVA=${tool 'jdk17'}/bin"
+                    ]) {
+                        sh """
+                        ${SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectKey=souvik-capstone \
+                        -Dsonar.projectName=souvik-capstone \
+                        -Dsonar.host.url=http://3.9.24.17:9000 \
+                        -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
+                }
             }
         }
-    }
+
     post {
         always {
-            emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                      "URL: ${env.BUILD_URL}<br/>",
-                to: 'kastrokiran@gmail.com',
-                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+            echo "Pipeline finished. Email notifications are disabled."
         }
     }
 }

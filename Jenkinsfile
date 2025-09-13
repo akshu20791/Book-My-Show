@@ -33,21 +33,19 @@ pipeline {
 }
 
 
-        stage('SonarQube Analysis') {
-    steps {
-        withSonarQubeEnv('SonarQube') {
-            sh """
-              docker run --rm \
-              -v ${env.WORKSPACE}:/usr/src \
-              sonarsource/sonar-scanner-cli \
-              -Dsonar.projectKey=bookmyshow \
-              -Dsonar.sources=/usr/src \
-              -Dsonar.host.url=$SONAR_HOST_URL \
-              -Dsonar.login=$SONAR_AUTH_TOKEN
-            """
+       stage('SonarQube Analysis') {
+            steps {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh """
+                      /opt/sonar-scanner/bin/sonar-scanner \
+                      -Dsonar.projectKey=bookmyshow \
+                      -Dsonar.sources=${env.WORKSPACE} \
+                      -Dsonar.host.url=http://35.180.109.34:9000 \
+                      -Dsonar.login=$SONAR_TOKEN
+                    """
+                }
+            }
         }
-    }
-}
 
 
 

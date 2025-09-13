@@ -36,19 +36,20 @@ pipeline {
             }
         }
 
-      stage('Quality Gate') {
+   stage('Quality Gate') {
     steps {
         script {
             try {
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(time: 15, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             } catch (err) {
-                echo "⚠️ Quality Gate check skipped due to timeout: ${err}"
+                echo "⚠️ Quality Gate skipped due to timeout: ${err}"
             }
         }
     }
 }
+
 
 
         stage('Install Dependencies') {

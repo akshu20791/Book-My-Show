@@ -7,9 +7,10 @@ pipeline {
     }
 
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'          // SonarQube scanner
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // DockerHub credentials ID
-        REPO_NAME = 'khushijain0910/capstone-project'
+        SCANNER_HOME = tool 'sonar-scanner'            // SonarQube scanner
+        SONAR_TOKEN = credentials('Sonar-token')      // Jenkins Sonar token
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins DockerHub creds
+        REPO_NAME = 'khushijain0910/capstone-project' // DockerHub repo
         IMAGE_NAME = 'bms-app'
     }
 
@@ -28,8 +29,14 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh "${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=capstone-bms -Dsonar.projectName=Capstone-BMS -Dsonar.host.url=http://3.138.67.55:9000 -Dsonar.login=${SONAR_TOKEN}"
+                withSonarQubeEnv('SonarQube') {  // SonarQube server name in Jenkins
+                    sh """
+                    ${SCANNER_HOME}/bin/sonar-scanner \
+                    -Dsonar.projectKey=capstone-bms \
+                    -Dsonar.projectName=Capstone-BMS \
+                    -Dsonar.host.url=http://3.138.67.55:9000 \
+                    -Dsonar.login=${SONAR_TOKEN}
+                    """
                 }
             }
         }
@@ -44,8 +51,8 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                script {
-                    dir('bookmyshow-app') {
+                dir('bookmyshow-app') {
+                    script {
                         // Build Docker image
                         sh "docker build -t ${REPO_NAME}:${env.BUILD_NUMBER} ."
 
@@ -71,4 +78,11 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+            echo "Pipeline finished. Email notifications are disabled."
+        }
+    }
 }
+

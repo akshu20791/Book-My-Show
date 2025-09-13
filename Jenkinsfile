@@ -56,13 +56,17 @@ pipeline {
         // }
 
         stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
+    steps {
+        dir('bookmyshow-app') {
+            sh 'npm install'
         }
+    }
+}
+
 
         stage('Docker Build & Push') {
             steps {
+                dir('bookmyshow-app') {
                 withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh """
                         echo "Building Docker image..."
@@ -76,6 +80,8 @@ pipeline {
                     """
                 }
             }
+            }
+            
         }
 
         stage('Deploy to Docker (Local)') {

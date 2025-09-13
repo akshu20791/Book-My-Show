@@ -1,0 +1,79 @@
+pipeline {
+agent any
+
+// Define environment variables for the pipeline
+environment {
+    // You should set these as Jenkins credentials
+    // DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+    DOCKER_HUB_USERNAME = 'your_dockerhub_username'
+    IMAGE_NAME = "book-my-show-app"
+}
+
+stages {
+    stage('Clean Workspace') {
+        steps {
+            cleanWs()
+        }
+    }
+
+    stage('Checkout Code') {
+        steps {
+            // Checkout code from the forked repository
+            // Make sure to configure a GitHub connection in Jenkins settings
+            git branch: 'feature/jenkins-pipeline', url: "https://github.com/your_github_username/Book-My-Show.git"
+        }
+    }
+    
+    stage('SonarQube Analysis') {
+        steps {
+            // This stage assumes you have a SonarQube server set up and configured in Jenkins
+            // with a SonarQube server and project.
+            // It also assumes you have the SonarQube Scanner for Jenkins plugin installed.
+            withSonarQubeEnv('SonarQube') {
+                sh 'sonar-scanner'
+            }
+        }
+    }
+
+    stage('Install Dependencies') {
+        steps {
+            sh 'npm install'
+        }
+    }
+
+    stage('Docker Build & Push') {
+        steps {
+            script {
+                def dockerImage = docker.build("${DOCKER_HUB_USERNAME}/${IMAGE_NAME}:${env.BUILD_NUMBER}")
+                docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+                    dockerImage.push()
+                }
+            }
+        }
+    }
+
+    stage('Deploy to Docker Container') {
+        steps {
+            // This stage assumes you have a Docker host configured as a Jenkins agent
+            sh 'docker stop book-my-show-container || true'
+            sh 'docker rm book-my-show-container || true'
+            sh "docker run -d --name book-my-show-container -p 3000:3000 ${DOCKER_HUB_USERNAME}/${IMAGE_NAME}:${env.BUILD_NUMBER}"
+        }
+    }
+
+    stage('Email Notification') {
+        steps {
+            // This stage sends an email notification on build result.
+            // It assumes you have a Jenkins email server configured.
+            emailext (
+                subject: "${currentBuild.result}: Jenkins Build ${env.JOB_NAME} - ${env.BUILD_NUMBER}",
+                body: "Build status: ${currentBuild.result}\n" +
+                      "Job URL: ${env.BUILD_URL}\n" +
+                      "Commit Message: ${scm.getChangeSet()[0].getMsg()}",
+                to: 'your_email_address@example.com'
+            )
+        }
+    }
+}
+
+}

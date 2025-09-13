@@ -10,7 +10,7 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'
         DOCKER_IMAGE = 'rajesh1808/bms:latest'
         EKS_CLUSTER_NAME = 'my-demo-eks'
-        AWS_REGION = 'ap-north-east-3'
+        AWS_REGION = 'ap-northeast-3'
     }
 
     stages {

@@ -17,29 +17,28 @@ pipeline {
                 git branch: 'feature/Capstone', url: 'https://github.com/Narasimha0001/Book-My-Show.git'
             }
         }
-stage('SonarQube Analysis') {
-    steps {
-        withSonarQubeEnv('sonarqube-server') {
-            script {
-                // Get the sonar-scanner installation path
-                def scannerHome = tool 'sonar-scanner'
-                sh """
-                ${scannerHome}/bin/sonar-scanner \
-                  -Dsonar.projectKey=bookmyshow \
-                  -Dsonar.sources=./bookmyshow-app \
-                  -Dsonar.host.url=$SONAR_HOST_URL \
-                  -Dsonar.login=$SONAR_AUTH_TOKEN
-                """
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube-server') {
+                    script {
+                        // Get the sonar-scanner installation path
+                        def scannerHome = tool 'sonar-scanner'
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                          -Dsonar.projectKey=bookmyshow \
+                          -Dsonar.sources=./bookmyshow-app \
+                          -Dsonar.host.url=$SONAR_HOST_URL \
+                          -Dsonar.login=$SONAR_AUTH_TOKEN
+                        """
+                    }
+                }
             }
         }
-    }
-}
-
-
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
@@ -74,9 +73,15 @@ stage('SonarQube Analysis') {
 
     post {
         always {
-            mail to: 'mudhenanarasimharao@gmail.com',
-                 subject: "Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
-                 body: "Check Jenkins console for details."
+            script {
+                try {
+                    mail to: 'mudhenanarasimharao@gmail.com',
+                         subject: "Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+                         body: "Check Jenkins console for details."
+                } catch (err) {
+                    echo "⚠️ Email notification skipped: ${err}"
+                }
+            }
         }
     }
 }

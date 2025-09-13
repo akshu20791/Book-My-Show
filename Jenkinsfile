@@ -36,14 +36,15 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 sh """
-                    docker run --rm \
-                      -v ${PWD}:/usr/src \
-                      sonarsource/sonar-scanner-cli \
-                      -Dsonar.projectKey=bookmyshow \
-                      -Dsonar.sources=/usr/src \
-                      -Dsonar.host.url=${SONAR_HOST} \
-                      -Dsonar.login=${SONAR_TOKEN}
-                """
+                  docker run --rm \
+                  -v ${env.WORKSPACE}:/usr/src \
+                  sonarsource/sonar-scanner-cli \
+                  -Dsonar.projectKey=bookmyshow \
+                  -Dsonar.sources=/usr/src \
+                  -Dsonar.host.url=${SONAR_HOST} \
+                  -Dsonar.login=${SONAR_TOKEN}
+                   """
+
             }
         }
 

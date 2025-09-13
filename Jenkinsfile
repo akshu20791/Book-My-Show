@@ -34,7 +34,7 @@ pipeline {
                     $SCANNER_HOME/bin/sonar-scanner \
                     -Dsonar.projectKey=BMS \
                     -Dsonar.projectName=BMS \
-                    -Dsonar.host.url=http://3.138.67.55:9000 \
+                    -Dsonar.host.url=http://3.144.13.232:8080/ 
                     -Dsonar.login=$SONAR_TOKEN
                     '''
                 }

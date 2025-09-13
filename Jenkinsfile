@@ -10,8 +10,8 @@ pipeline {
         SCANNER_HOME = tool 'sonar-scanner'            // SonarQube scanner
         SONAR_TOKEN = credentials('Sonar-token')      // Jenkins Sonar token
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins DockerHub creds
-        REPO_NAME = 'khushijain0910/capstone-project' // DockerHub repo
-        IMAGE_NAME = 'bms-app'
+        REPO_NAME = 'khushijain0910/capstone-project-bms' // DockerHub repo
+        IMAGE_NAME = 'latest'
     }
 
     stages {

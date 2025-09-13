@@ -32,9 +32,9 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {  // SonarQube server name in Jenkins
                     sh """
                     ${SCANNER_HOME}/bin/sonar-scanner \
-                    -Dsonar.projectKey=capstone-bms \
-                    -Dsonar.projectName=Capstone-BMS \
-                    -Dsonar.host.url=http://3.138.67.55:9000 \ 
+                    -Dsonar.projectKey=souvik-capstone \
+                    -Dsonar.projectName=souvik-capstone \
+                    -Dsonar.host.url=http://http://3.9.24.17:9000 \ 
                     -Dsonar.login=${SONAR_TOKEN}
                     """
                 }

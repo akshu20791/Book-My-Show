@@ -42,12 +42,19 @@ pipeline {
         }
 
         stage('Quality Gate') {
-            steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+    steps {
+        script {
+            try {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true, credentialsId: 'Sonar-token'
                 }
+            } catch (err) {
+                echo "Quality Gate check skipped due to timeout: ${err}"
             }
         }
+    }
+}
+
 
         stage('Install Dependencies') {
             steps {

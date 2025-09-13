@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'sejalrk/bookmyshow-app'               // your DockerHub repo name
-        DOCKER_CRED = credentials('docker-creds')            // Jenkins credential ID for DockerHub
-        SONAR_TOKEN = credentials('sejal-bms-token')               // Jenkins credential ID for SonarQube
+        DOCKER_CRED = credentials('docker-creds')           // Jenkins credential ID for DockerHub
+        SONAR_TOKEN = credentials('sejal-bms-token')        // Jenkins credential ID for SonarQube
     }
 
     stages {
@@ -21,23 +21,24 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-    steps {
-        withSonarQubeEnv('SonarQube') {
-            sh '''
-                /opt/sonar-scanner/bin/sonar-scanner \
-                -Dsonar.projectKey=BookMyShow \
-                -Dsonar.sources=. \
-                -Dsonar.host.url=http://35.176.13.219:9000 \
-                -Dsonar.login=${SONAR_TOKEN}
-            '''
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        /opt/sonar-scanner/bin/sonar-scanner \
+                        -Dsonar.projectKey=BookMyShow \
+                        -Dsonar.sources=bookmyshow-app \
+                        -Dsonar.host.url=http://35.176.13.219:9000 \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    '''
+                }
+            }
         }
-    }
-}
-
 
         stage('Install NPM Dependencies') {
             steps {
-                sh 'npm install'
+                dir('bookmyshow-app') {
+                    sh 'npm install'
+                }
             }
         }
 
@@ -56,35 +57,32 @@ pipeline {
         }
         */
 
-       stage('Docker Build & Push') {
-    steps {
-        script {
-            sh '''
-                docker build -t sejalrk/bookmyshow-app:${BUILD_NUMBER} .
-                echo $DOCKER_CRED_PSW | docker login -u $DOCKER_CRED_USR --password-stdin
-                docker push sejalrk/bookmyshow-app:${BUILD_NUMBER}
-            '''
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    sh '''
+                        docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} -f bookmyshow-app/Dockerfile bookmyshow-app
+                        echo $DOCKER_CRED_PSW | docker login -u $DOCKER_CRED_USR --password-stdin
+                        docker push ${IMAGE_NAME}:${BUILD_NUMBER}
+                    '''
+                }
+            }
         }
-    }
-}
 
-
-       stage('Deploy to Remote Ubuntu via SSH') {
-    steps {
-        sshagent(['ubuntu-ssh']) { // Replace with your SSH credential ID
-            sh '''
-                ssh -o StrictHostKeyChecking=no ubuntu@35.176.13.219 << 'ENDSSH'
-                    cd /home/ubuntu/Book-My-Show/bookmyshow-app || exit 1
-                    git pull origin feature_devops_setup
-                    docker stop bms-container || true
-                    docker rm bms-container || true
-                    docker run -d -p 3000:3000 --name bms-container sejalrk/bookmyshow-app:${BUILD_NUMBER}
-                ENDSSH
-            '''
+        stage('Deploy to Remote Ubuntu via SSH') {
+            steps {
+                sshagent(['ubuntu-ssh']) { // Replace with your SSH credential ID
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@35.176.13.219 << 'ENDSSH'
+                            docker stop bms-container || true
+                            docker rm bms-container || true
+                            docker pull sejalrk/bookmyshow-app:${BUILD_NUMBER}
+                            docker run -d -p 3000:3000 --name bms-container sejalrk/bookmyshow-app:${BUILD_NUMBER}
+                        ENDSSH
+                    '''
+                }
+            }
         }
-    }
-}
-
 
         stage('Email Notification') {
             steps {
@@ -103,3 +101,4 @@ pipeline {
         }
     }
 }
+

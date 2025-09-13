@@ -26,7 +26,7 @@ pipeline {
     stage('Install Dependencies') {
       steps {
         // Adjust directory if package.json is inside a subfolder
-        dir('frontend') {
+        dir('bookmyshow-app') {
           sh 'npm install'
         }
       }

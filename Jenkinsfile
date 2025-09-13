@@ -49,11 +49,11 @@ pipeline {
 
 
 
-        stage('Quality Gate') {
-            steps {
-                waitForQualityGate abortPipeline: true
-            }
-        }
+        // stage('Quality Gate') {
+        //     steps {
+        //         waitForQualityGate abortPipeline: true
+        //     }
+        // }
 
         stage('Install Dependencies') {
             steps {

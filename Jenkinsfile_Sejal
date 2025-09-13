@@ -21,18 +21,19 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        sonar-scanner \
-                        -Dsonar.projectKey=BookMyShow \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://35.176.13.219:9000 \
-                        -Dsonar.login=${SONAR_TOKEN}
-                    '''
-                }
-            }
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            sh '''
+                /opt/sonar-scanner/bin/sonar-scanner \
+                -Dsonar.projectKey=BookMyShow \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=http://35.176.13.219:9000 \
+                -Dsonar.login=${SONAR_TOKEN}
+            '''
         }
+    }
+}
+
 
         stage('Install NPM Dependencies') {
             steps {

@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_USER   = 'raf1345'                    // DockerHub username
+        DOCKERHUB_USER   = 'rafi345'                    // DockerHub username
         APP_NAME         = 'bookmyshow'                 // App name
         IMAGE_TAG        = "v${BUILD_NUMBER}"           // Unique tag per build
         DOCKERHUB_CREDS  = 'dockerhub-creds'           // Jenkins DockerHub credentials ID

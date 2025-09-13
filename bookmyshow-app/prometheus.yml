@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  - job_name: "jenkins"
+    metrics_path: /prometheus
+    basic_auth:
+      username: "admin"
+      password: "1153fe8cd4ba10de12ff7d8578be5e0c77"
+    static_configs:
+      - targets: ["3.22.116.174:8080"]
+

@@ -4,7 +4,7 @@ pipeline {
     // Tools installed via Jenkins Global Tool Configuration
     tools {
         nodejs "NodeJS"                // NodeJS configured in Jenkins
-        sonar "SonarQube" // SonarQube Scanner configured in Jenkins
+        
     }
 
     environment {

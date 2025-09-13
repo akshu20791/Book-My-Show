@@ -25,9 +25,8 @@ pipeline {
     }
     stage('Install Dependencies') {
       steps {
-        // Adjust directory if package.json is inside a subfolder
-        dir('bookmyshow-app') {
-          sh 'sh 'npm ci --cache .npm-cache''
+         dir('bookmyshow-app') {
+           sh 'npm ci --cache .npm-cache'
         }
       }
     }

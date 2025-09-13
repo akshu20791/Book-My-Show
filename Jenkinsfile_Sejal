@@ -1,0 +1,104 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'sejalrk/bookmyshow-app'               // your DockerHub repo name
+        DOCKER_CRED = credentials('docker-creds')            // Jenkins credential ID for DockerHub
+        SONAR_TOKEN = credentials('sejal-bms-token')               // Jenkins credential ID for SonarQube
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                git url: 'https://github.com/Sejalkarwa/Book-My-Show.git', branch: 'feature_devops_setup'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            sh '''
+                /opt/sonar-scanner/bin/sonar-scanner \
+                -Dsonar.projectKey=BookMyShow \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=http://35.176.13.219:9000 \
+                -Dsonar.login=${SONAR_TOKEN}
+            '''
+        }
+    }
+}
+
+
+        stage('Install NPM Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        // Optional Security Scanners (Uncomment if configured)
+        /*
+        stage('Trivy FS Scan') {
+            steps {
+                sh 'trivy fs .'
+            }
+        }
+
+        stage('OWASP Dependency Check') {
+            steps {
+                sh './dependency-check/bin/dependency-check.sh --scan .'
+            }
+        }
+        */
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+                    sh """
+                        docker build -t $IMAGE_NAME:${BUILD_NUMBER} .
+                        echo $DOCKER_CRED_PSW | docker login -u $DOCKER_CRED_USR --password-stdin
+                        docker push $IMAGE_NAME:${BUILD_NUMBER}
+                    """
+                }
+            }
+        }
+
+       stage('Deploy to Remote Ubuntu via SSH') {
+    steps {
+        sshagent(['ubuntu-ssh']) { // Replace with your SSH credential ID
+            sh '''
+                ssh -o StrictHostKeyChecking=no ubuntu@35.176.13.219 << 'ENDSSH'
+                    cd /home/ubuntu/Book-My-Show/bookmyshow-app || exit 1
+                    git pull origin feature_devops_setup
+                    docker stop bms-container || true
+                    docker rm bms-container || true
+                    docker run -d -p 3000:3000 --name bms-container sejalrk/bookmyshow-app:${BUILD_NUMBER}
+                ENDSSH
+            '''
+        }
+    }
+}
+
+
+        stage('Email Notification') {
+            steps {
+                emailext subject: "Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+                         body: "Build result: ${currentBuild.currentResult}\nURL: ${env.BUILD_URL}",
+                         to: 'sejalkarwa2@gmail.com'
+            }
+        }
+    }
+
+    post {
+        failure {
+            emailext subject: "❌ FAILED: Build #${env.BUILD_NUMBER}",
+                     body: "Jenkins job failed.\nCheck logs: ${env.BUILD_URL}",
+                     to: 'sejalkarwa2@gmail.com'
+        }
+    }
+}

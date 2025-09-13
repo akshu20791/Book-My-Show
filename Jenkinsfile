@@ -23,11 +23,14 @@ pipeline {
             steps { cleanWs() }
         }
 
-        stage('Checkout Code') {
-            steps {
-                git url: 'https://github.com/Rafi345/Book-My-Show.git', branch: 'feature/update-readme'
-            }
-        }
+    stage('Checkout Code') {
+        steps {
+            git branch: 'feature/update-readme',
+            url: 'https://github.com/Rafi345/Book-My-Show.git',
+            credentialsId: 'github_id' // add this if private repo
+    }
+}
+
 
         stage('SonarQube Analysis') {
             steps {

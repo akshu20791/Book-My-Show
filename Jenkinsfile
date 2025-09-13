@@ -17,20 +17,24 @@ pipeline {
                 git branch: 'feature/Capstone', url: 'https://github.com/Narasimha0001/Book-My-Show.git'
             }
         }
-
-        stage('SonarQube Analysis') {
+stage('SonarQube Analysis') {
     steps {
         withSonarQubeEnv('sonarqube-server') {
-            withSonarQubeScannerInstallation('sonar-scanner') {
-                sh '''
-                sonar-scanner \
+            script {
+                // Get the sonar-scanner installation path
+                def scannerHome = tool 'sonar-scanner'
+                sh """
+                ${scannerHome}/bin/sonar-scanner \
                   -Dsonar.projectKey=bookmyshow \
-                  -Dsonar.sources=./bookmyshow-app
-                '''
+                  -Dsonar.sources=./bookmyshow-app \
+                  -Dsonar.host.url=$SONAR_HOST_URL \
+                  -Dsonar.login=$SONAR_AUTH_TOKEN
+                """
             }
         }
     }
 }
+
 
 
         stage('Quality Gate') {

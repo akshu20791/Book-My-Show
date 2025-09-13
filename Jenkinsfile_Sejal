@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'sejalrk/bookmyshow-app'               // your DockerHub repo name
         DOCKER_CRED = credentials('docker-creds')            // Jenkins credential ID for DockerHub
-        SONAR_TOKEN = credentials('sonar-token')               // Jenkins credential ID for SonarQube
+        SONAR_TOKEN = credentials('sejal-bms-token')               // Jenkins credential ID for SonarQube
     }
 
     stages {

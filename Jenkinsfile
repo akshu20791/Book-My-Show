@@ -19,14 +19,16 @@ pipeline {
     stage('SonarQube Analysis') {
       steps {
         withSonarQubeEnv('SonarQube') {
-          // Replace Maven command with sonar-scanner for Node.js
-         sh 'sonar-scanner -Dsonar.projectKey=BookMyShow -Dsonar.sources=.'
+          sh 'sonar-scanner -Dsonar.projectKey=BookMyShow -Dsonar.sources=.'
         }
       }
     }
     stage('Install Dependencies') {
       steps {
-        sh 'npm install'
+        // Adjust directory if package.json is inside a subfolder
+        dir('frontend') {
+          sh 'npm install'
+        }
       }
     }
     stage('Docker Build & Push') {
@@ -42,14 +44,12 @@ pipeline {
     stage('Deploy to Docker') {
       steps {
         script {
-          // Stop and remove any container running on port 3000
           sh '''
             cid=$(docker ps -q -f "publish=3000")
             if [ ! -z "$cid" ]; then
               docker rm -f $cid
             fi
           '''
-          // Run new container
           sh "docker run -d -p 3000:3000 ${DOCKER_IMAGE}"
         }
       }

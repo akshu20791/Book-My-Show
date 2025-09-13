@@ -8,10 +8,10 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'            // SonarQube scanner
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins credential ID
+        SONAR_TOKEN = credentials('Sonar-token')      // Jenkins Sonar token
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // Jenkins DockerHub creds
         REPO_NAME = 'khushijain0910/capstone-project' // DockerHub repo
         IMAGE_NAME = 'bms-app'
-        EMAIL_RECIPIENT = 'khushiijain0910@gmail.com'
     }
 
     stages {
@@ -29,8 +29,14 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {  // Must match Jenkins SonarQube server name
-                    sh "${SCANNER_HOME}/bin/sonar-scanner"
+                withSonarQubeEnv('SonarQube') {  // SonarQube server name in Jenkins
+                    sh """
+                    ${SCANNER_HOME}/bin/sonar-scanner \
+                    -Dsonar.projectKey=capstone-bms \
+                    -Dsonar.projectName=Capstone-BMS \
+                    -Dsonar.host.url=http://3.138.67.55:9000 \
+                    -Dsonar.login=${SONAR_TOKEN}
+                    """
                 }
             }
         }
@@ -70,15 +76,9 @@ pipeline {
     }
 
     post {
-        success {
-            mail to: "${EMAIL_RECIPIENT}",
-                 subject: "Jenkins Build Successful: ${currentBuild.fullDisplayName}",
-                 body: "Good news! Build ${currentBuild.fullDisplayName} succeeded.\nCheck Jenkins console for details."
-        }
-        failure {
-            mail to: "${EMAIL_RECIPIENT}",
-                 subject: "Jenkins Build Failed: ${currentBuild.fullDisplayName}",
-                 body: "Build ${currentBuild.fullDisplayName} failed. Please check Jenkins console for details."
+        always {
+            echo "Pipeline finished. Email notifications are disabled."
         }
     }
 }
+

@@ -27,7 +27,7 @@ pipeline {
       steps {
         // Adjust directory if package.json is inside a subfolder
         dir('bookmyshow-app') {
-          sh 'npm install'
+          sh 'sh 'npm ci --cache .npm-cache''
         }
       }
     }

@@ -27,22 +27,25 @@
 # CMD ["npm", "start"]
 
 # Build stage
-FROM node:18 AS build
+FROM node:18 as build
 
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
+
 COPY . .
+
+# ✅ Fix for OpenSSL issue with Node 17+
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
 RUN npm run build
+
 
 # Nginx stage
 FROM nginx:alpine
 
-# Copy build output to Nginx html folder
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Expose port
 EXPOSE 80
-
-# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -14,7 +14,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/akshu20791/Book-My-Show.git'
+                git branch: 'feature/Capstone', url: 'https://github.com/Narasimha0001/Book-My-Show.git'
             }
         }
 

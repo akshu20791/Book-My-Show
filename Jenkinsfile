@@ -25,8 +25,12 @@ pipeline {
     }
     stage('Install Dependencies') {
       steps {
-         dir('bookmyshow-app') {
-           sh 'npm ci --cache .npm-cache'
+        dir('bookmyshow-app') {
+          // Update package-lock.json to fix mismatches
+          sh 'npm install'
+
+          // Clean install dependencies with updated lock file
+          sh 'npm ci --cache .npm-cache'
         }
       }
     }

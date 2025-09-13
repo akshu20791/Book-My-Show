@@ -1,3 +1,3 @@
-### Update
-Added CI/CD pipeline setup (by Gurrala-Shreya)
+##### Update
+Added CI/CD pipeline notes (by Gurrala-Shreya)
 

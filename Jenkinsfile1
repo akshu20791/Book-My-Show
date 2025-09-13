@@ -34,7 +34,7 @@ pipeline {
                     ${SCANNER_HOME}/bin/sonar-scanner \
                     -Dsonar.projectKey=capstone-bms \
                     -Dsonar.projectName=Capstone-BMS \
-                    -Dsonar.host.url=http://3.138.67.55:9000 \
+                    -Dsonar.host.url=http://3.138.67.55:9000 \ 
                     -Dsonar.login=${SONAR_TOKEN}
                     """
                 }

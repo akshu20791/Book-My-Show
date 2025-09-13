@@ -56,17 +56,18 @@ pipeline {
         }
         */
 
-        stage('Docker Build & Push') {
-            steps {
-                script {
-                    sh """
-                        docker build -t $IMAGE_NAME:${BUILD_NUMBER} .
-                        echo $DOCKER_CRED_PSW | docker login -u $DOCKER_CRED_USR --password-stdin
-                        docker push $IMAGE_NAME:${BUILD_NUMBER}
-                    """
-                }
-            }
+       stage('Docker Build & Push') {
+    steps {
+        script {
+            sh '''
+                docker build -t sejalrk/bookmyshow-app:${BUILD_NUMBER} .
+                echo $DOCKER_CRED_PSW | docker login -u $DOCKER_CRED_USR --password-stdin
+                docker push sejalrk/bookmyshow-app:${BUILD_NUMBER}
+            '''
         }
+    }
+}
+
 
        stage('Deploy to Remote Ubuntu via SSH') {
     steps {
